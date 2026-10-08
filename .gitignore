@@ -1,0 +1,16 @@
+# CityPortal   — a lightweight, privacy-first PHP engine for a local news portal: news, events, cinema, weather, online radio and an admin panel.
+# Copyright (c) 2026 PsyGioX — https://github.com/PsyGioX · https://psygiox-dev.vercel.app/
+# Project: https://github.com/PsyGioX/cityportalru
+/config/config.php
+/config/installed.lock
+/storage/cache/*
+/storage/logs/*
+/storage/backups/*
+/storage/og/*.jpg
+/public/sitemap*.xml
+/public/robots.txt
+/public/rss*.xml
+/public/llms.txt
+/public/manifest.webmanifest
+/public/opensearch.xml
+/public/.well-known/

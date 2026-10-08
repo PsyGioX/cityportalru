@@ -1,0 +1,11 @@
+<!--
+CityPortal   — a lightweight, privacy-first PHP engine for a local news portal: news, events, cinema, weather, online radio and an admin panel.
+Copyright (c) 2026 PsyGioX — https://github.com/PsyGioX · https://psygiox-dev.vercel.app/
+Project: https://github.com/PsyGioX/cityportalru
+-->
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="32" height="32" rx="8" fill="none"/>
+<path d="M6 12.0539C6 10.441 6.62729 8.92223 7.77209 7.77533C8.91688 6.62844 10.4328 6 12.0429 6H26V9.07934H12.0429C11.2535 9.07934 10.5112 9.38832 9.94668 9.95391C9.38212 10.5195 9.07371 11.2684 9.07371 12.0592L9.0528 17.2281C8.91166 18.6002 7.87663 19.7052 6.54365 19.9094L6 19.988V12.0539Z" fill="white"/>
+<path d="M6 25.9996V22.9203H19.9571C20.7465 22.9203 21.494 22.606 22.0533 22.0457C22.6179 21.4801 22.9263 20.7364 22.9263 19.9457L22.9315 15.0439C22.9315 13.5827 24.0188 12.3154 25.4564 12.0954L26 12.0116V19.9457C26 21.5587 25.3675 23.0774 24.2279 24.2243C23.0831 25.3712 21.5672 25.9996 19.9571 25.9996H6Z" fill="white"/>
+<path d="M17.819 19.9985V16.0236L15.9998 18.197L14.1807 16.0236V19.9985H11.7709V12.1692H14.0552L15.9998 14.6882L17.9497 12.1692H20.2288V19.9985H17.819Z" fill="white"/>
+</svg>

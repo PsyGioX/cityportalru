@@ -1,0 +1,69 @@
+# CityPortal   — a lightweight, privacy-first PHP engine for a local news portal: news, events, cinema, weather, online radio and an admin panel.
+# Copyright (c) 2026 PsyGioX — https://github.com/PsyGioX · https://psygiox-dev.vercel.app/
+# Project: https://github.com/PsyGioX/cityportalru
+# Пример для Nginx + PHP-FPM. Подставьте домен, пути и версию PHP.
+server {
+    listen 80;
+    server_name tvoykorenovsk.ru www.tvoykorenovsk.ru;
+    return 301 https://tvoykorenovsk.ru$request_uri;
+}
+server {
+    listen 443 ssl http2;
+    server_name www.tvoykorenovsk.ru;
+    # ssl_certificate ...; ssl_certificate_key ...;
+    return 301 https://tvoykorenovsk.ru$request_uri;
+}
+server {
+    listen 443 ssl http2;
+    server_name tvoykorenovsk.ru;
+    # ssl_certificate     /etc/letsencrypt/live/tvoykorenovsk.ru/fullchain.pem;
+    # ssl_certificate_key /etc/letsencrypt/live/tvoykorenovsk.ru/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    root /var/www/tvoykorenovsk/public;
+    index index.php;
+    client_max_body_size 16m;
+    charset utf-8;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json application/xml text/plain image/svg+xml application/manifest+json;
+
+    # Скрытые файлы закрыты, кроме .well-known
+    location ~ /\.(?!well-known) { deny all; }
+
+    # Фирменный цвет из админки (Настройки → Оформление и бренд) отдаёт PHP, а не файл
+    location = /brand.css { rewrite ^ /index.php last; }
+
+    # Статика: долгий кэш
+    location ~* \.(?:css|js|woff2|svg|png|jpe?g|webp|gif|ico)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        add_header X-Content-Type-Options nosniff;
+        try_files $uri =404;
+    }
+
+    # Загрузки: ничего не исполнять
+    location ^~ /uploads/ {
+        location ~ \.(?:php|phtml|phar|html?|js|svg)$ { return 403; }
+        add_header X-Content-Type-Options nosniff;
+        add_header Content-Security-Policy "default-src 'none'; img-src 'self'; sandbox";
+        try_files $uri =404;
+    }
+
+    # SEO-файлы короткий кэш; если статической копии нет — их отдаст PHP
+    location ~* ^/(sitemap.*\.xml|robots\.txt|rss.*\.xml|llms\.txt|manifest\.webmanifest|opensearch\.xml)$ {
+        add_header Cache-Control "public, max-age=300, must-revalidate";
+        try_files $uri /index.php?$query_string;
+    }
+
+    location / { try_files $uri /index.php?$query_string; }
+
+    location = /index.php {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root/index.php;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        fastcgi_read_timeout 60s;
+    }
+    # любые другие .php — запрещены
+    location ~ \.php$ { return 404; }
+}

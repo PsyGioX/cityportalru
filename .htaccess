@@ -1,0 +1,14 @@
+# CityPortal   — a lightweight, privacy-first PHP engine for a local news portal: news, events, cinema, weather, online radio and an admin panel.
+# Copyright (c) 2026 PsyGioX — https://github.com/PsyGioX · https://psygiox-dev.vercel.app/
+# Project: https://github.com/PsyGioX/cityportalru
+# Запасной вариант для хостингов, где нельзя изменить корень сайта на public/.
+# Всё направляется в public/, а служебные папки закрыты полностью.
+Options -Indexes
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^(app|config|database|storage|bin|tools|docs)(/|$) - [F,L]
+  RewriteRule "(^|/)\.(?!well-known/)" - [F,L]
+  RewriteRule "^(README|CHANGELOG|LICENSE)(\.md)?$|^nginx\.conf\.example$|\.(md|sql|log|bak|sample|example|dist)$" - [F,NC,L]
+  RewriteCond %{REQUEST_URI} !^/public/
+  RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
