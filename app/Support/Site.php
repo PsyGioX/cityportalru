@@ -137,6 +137,10 @@ final class Site
         $map['[[city_about]]'] = e((string) Settings::get('footer_about', '')) ?: e(city());
         $map['[[domain]]'] = e(\App\Core\Request::baseUrlHost());
         $map['[[site_url]]'] = e(\App\Core\Request::baseUrl());
+        $det = trim((string) Settings::get('pd_operator_details', ''));
+        $map['[[operator_details]]'] = $det !== '' ? nl2br(e($det), false) : '<mark class="todo">[укажите реквизиты оператора в «Настройки → Cookie и согласие»]</mark>';
+        $map['[[cookie_analytics]]'] = Consent::policyAnalyticsHtml();
+        $map['[[cookie_ttl]]'] = (string) Consent::ttlMonths();
         return strtr($html, $map);
     }
 }

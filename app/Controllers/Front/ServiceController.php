@@ -10,9 +10,11 @@ namespace App\Controllers\Front;
 
 use App\Core\App;
 use App\Core\DB;
+use App\Core\RateLimit;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Settings;
+use App\Support\Consent;
 use App\Support\OgImage;
 use App\Support\Repo;
 use App\Support\SeoFiles;
@@ -47,6 +49,27 @@ final class ServiceController
         [$desc, $icon] = Weather::describe($w['code'], (bool) ($w['is_day'] ?? 1));
         header('Cache-Control: public, max-age=300');
         Response::json(['ok' => true, 'temp' => Weather::fmtTemp($w['temp']), 'desc' => $desc, 'icon' => $icon]);
+    }
+
+    /**
+     * Подтверждение выбора в cookie-баннере (доказательство согласия, ч. 3 ст. 9 152-ФЗ). Сохраняется случайный идентификатор из браузера,
+     * выбор, версия текста и время — без IP и User-Agent. Сам выбор работает и без этого запроса (хранится в браузере).
+     */
+    public function consent(): void
+    {
+        if (!Consent::enabled()) {
+            Response::json(['ok' => false], 404);
+        }
+        $origin = (string) ($_SERVER['HTTP_ORIGIN'] ?? '');
+        if ($origin !== '' && (string) parse_url($origin, PHP_URL_HOST) !== Request::baseUrlHost()) {
+            Response::json(['ok' => false], 403);
+        }
+        if (!RateLimit::hit('consent|' . Request::ip(), 30, 3600)) {
+            Response::json(['ok' => false], 429);
+        }
+        $d = json_decode((string) file_get_contents('php://input', false, null, 0, 1024), true);
+        $ok = is_array($d) && Consent::record((string) ($d['id'] ?? ''), (string) ($d['a'] ?? ''), (int) ($d['an'] ?? 0) === 1, (int) ($d['v'] ?? 0));
+        Response::json(['ok' => $ok], $ok ? 200 : 422);
     }
 
     /** Фирменный цвет из настроек (inline-стили запрещены CSP, поэтому отдельный файл стилей). */

@@ -18,6 +18,7 @@ $radioOn = Site::enabled('radio');
 $wx = $wxOn ? Weather::get(false) : null;
 $og = $seo['og'];
 $path = \App\Core\Request::path();
+$cc = \App\Support\Consent::banner();   // null, пока баннер выключен в настройках
 ?><!doctype html>
 <html lang="ru" prefix="og: https://ogp.me/ns#">
 <head>
@@ -167,12 +168,38 @@ $path = \App\Core\Request::path();
         <?php if ($smi = setting('smi_reg')): ?><?= e($smi) ?>.<?php endif ?></p>
       <ul class="legal-links">
         <?php foreach ($chrome['pages'] as $p): if (Site::isDisabled('/' . $p['slug'])) { continue; } ?><li><a href="/<?= e($p['slug']) ?>"><?= e($p['title']) ?></a></li><?php endforeach ?>
+        <?php if ($cc): ?><li><button type="button" class="linklike" data-cc="open">Настройки cookie</button></li><?php endif ?>
       </ul>
       <?php if ($age = setting('age_mark')): ?><span class="age-mark" title="Знак информационной продукции"><?= e($age) ?></span><?php endif ?>
     </div>
   </div>
 </footer>
 
+<?php if ($cc): ?>
+<section id="cookie-banner" class="cc" role="dialog" aria-modal="false" aria-labelledby="cc-title" aria-describedby="cc-text" hidden
+  data-ver="<?= (int) $cc['ver'] ?>" data-ttl="<?= (int) $cc['ttl'] ?>" data-ym="<?= e($cc['ym']) ?>" data-endpoint="/api/consent">
+  <div class="cc__box">
+    <h2 id="cc-title" class="cc__title" tabindex="-1"><?= e($cc['title']) ?></h2>
+    <p id="cc-text" class="cc__text"><?= e($cc['text']) ?></p>
+    <p class="cc__links"><a href="<?= e($cc['cookie_url']) ?>">Политика cookie</a> · <a href="<?= e($cc['privacy_url']) ?>">Обработка персональных данных</a></p>
+    <?php if ($cc['ym'] !== ''): ?>
+    <div class="cc__prefs" id="cc-prefs" hidden>
+      <label class="cc__row"><input type="checkbox" checked disabled><span><b>Необходимые</b> — тема оформления и ваш выбор по cookie. Отключить нельзя.</span></label>
+      <label class="cc__row"><input type="checkbox" id="cc-analytics"><span><b>Аналитика</b> — «Яндекс Метрика»: статистика посещений. Включается только с вашего согласия.</span></label>
+    </div>
+    <div class="cc__actions">
+      <button type="button" class="btn btn--primary" data-cc="accept">Принять все</button>
+      <button type="button" class="btn btn--primary" data-cc="reject">Только необходимые</button>
+      <button type="button" class="btn btn--ghost" data-cc="more" aria-expanded="false" aria-controls="cc-prefs">Настроить</button>
+      <button type="button" class="btn btn--ghost" data-cc="save" hidden>Сохранить выбор</button>
+    </div>
+    <?php else: ?>
+    <div class="cc__actions"><button type="button" class="btn btn--primary" data-cc="ack">Понятно</button></div>
+    <?php endif ?>
+  </div>
+</section>
+<script src="<?= asset('js/consent.js') ?>" defer></script>
+<?php endif ?>
 <script src="<?= asset('js/theme.js') ?>" defer></script>
 <script src="<?= asset('js/site.js') ?>" defer></script>
 </body>

@@ -36,6 +36,7 @@ final class Cron
         DB::exec('DELETE FROM sessions WHERE last_activity < ?', [time() - 43200]);
         DB::exec('DELETE FROM indexnow_log WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)');
         DB::exec("DELETE FROM not_found_log WHERE is_ignored = 0 AND hits < 3 AND last_seen_at < DATE_SUB(NOW(), INTERVAL 30 DAY)");
+        Consent::purgeOld();   // подтверждения согласий хранятся 3 года
         foreach (glob(STORAGE_PATH . '/og/*.jpg') ?: [] as $f) {
             if (time() - filemtime($f) > 90 * 86400) {
                 @unlink($f);

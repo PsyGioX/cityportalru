@@ -14,6 +14,7 @@ use App\Core\Request;
 use App\Core\Security;
 use App\Core\Settings;
 use App\Support\Brand;
+use App\Support\Consent;
 use App\Support\SeoFiles;
 use App\Support\Weather;
 
@@ -45,6 +46,16 @@ final class SettingsController extends AdminController
                 'site_short_name' => ['text', 'Короткое название (под значком на экране телефона)', 'До 12 знаков. Пусто — первые 12 знаков названия сайта'],
                 'brand_accent' => ['color', 'Фирменный цвет', 'Цвет шапки, кнопок и рубрик. Цвет надписей на нём (белый или тёмный) и оттенки для светлой и тёмной темы подбираются автоматически. Стандартный — #e3182b'],
                 'og_image' => ['media', 'Картинка для соцсетей по умолчанию (1200×630)', 'Показывается в превью ссылок, если у материала нет своего фото'],
+            ]],
+            'cookies' => ['Cookie и согласие', [
+                'cookie_banner' => ['checkbox', 'Показывать cookie-баннер', 'Выключено по умолчанию: пока на сайте нет аналитики и cookie для читателей, баннер не нужен. Включите, если подключаете счётчик (поле ниже). Журнал выбора читателей — «Сайт → Cookie и согласия»'],
+                'ym_id' => ['text', 'Яндекс Метрика: номер счётчика', 'Только цифры. Счётчик подключается ПОСЛЕ согласия читателя («Принять все» или галочка «Аналитика»), вебвизор не используется. Пусто — аналитики нет, баннер только информирует. Требует включённого баннера'],
+                'cookie_title' => ['text', 'Заголовок баннера', 'Пусто — «Мы используем cookie»'],
+                'cookie_text' => ['textarea', 'Текст баннера', 'Пусто — стандартный текст. Не пишите «продолжая пользоваться сайтом, вы соглашаетесь»: молчаливое согласие не считается согласием. Изменение текста запрашивает согласие у читателей заново'],
+                'cookie_policy_url' => ['text', 'Адрес политики cookie', 'По умолчанию /cookie-policy — страница создаётся черновиком в «Контент → Страницы»: проверьте текст и опубликуйте'],
+                'privacy_policy_url' => ['text', 'Адрес политики обработки персональных данных', 'По умолчанию /privacy (статья 18.1 закона № 152-ФЗ: политика должна быть опубликована)'],
+                'cookie_ttl_months' => ['text', 'Через сколько месяцев спрашивать согласие снова (1–24)', 'Рекомендуем 12'],
+                'pd_operator_details' => ['textarea', 'Реквизиты оператора для политик', 'Полное наименование или ФИО, ИНН/ОГРН(ИП), адрес. Подставляется в политики вместо [[operator_details]]'],
             ]],
             'security' => ['Безопасность', [
                 'require_2fa' => ['checkbox', 'Требовать двухфакторную аутентификацию у администраторов и редакторов', 'Рекомендуется, но не обязательно. Если включить, пока 2FA не настроена, доступен только раздел «Профиль»'],
@@ -103,6 +114,10 @@ final class SettingsController extends AdminController
                     } else {
                         $val = Request::line($key, 500);
                     }
+                    if ($key === 'ym_id' && $val !== '' && !Request::bool('cookie_banner')) {
+                        $errors[$key] = 'Счётчик можно подключить только вместе с cookie-баннером: включите «Показывать cookie-баннер».';
+                        continue;
+                    }
                     if (!$this->check($key, $val, $errors)) {
                         continue;
                     }
@@ -122,6 +137,18 @@ final class SettingsController extends AdminController
                 }
                 if (!preg_match('/^[a-zA-Z0-9\-]{8,64}$/', (string) Settings::get('indexnow_key', ''))) {
                     Settings::set('indexnow_key', bin2hex(random_bytes(16)));
+                }
+                if (array_intersect(['ym_id', 'cookie_text', 'cookie_title'], $changed) && Settings::bool('cookie_banner')) {
+                    Consent::bumpVersion();   // цель или текст изменились — прежние согласия недействительны, спросим заново
+                }
+                if (Settings::bool('cookie_banner')) {
+                    foreach (['cookie_policy_url' => '/cookie-policy', 'privacy_policy_url' => '/privacy'] as $k => $def) {
+                        $u = Consent::url($k, $def);
+                        $slug = preg_match('#^/([a-z0-9][a-z0-9-]*)$#', $u, $m) ? $m[1] : null;
+                        if ($slug !== null && !DB::val("SELECT 1 FROM pages WHERE slug = ? AND status = 'published'", [$slug])) {
+                            $this->flash('warn', 'Страница ' . $u . ' не опубликована — ссылка в баннере ведёт на 404. Проверьте текст в «Контент → Страницы» и опубликуйте.');
+                        }
+                    }
                 }
                 Settings::touch();
                 \App\Core\Cache::flush();
@@ -143,6 +170,9 @@ final class SettingsController extends AdminController
             'city_lon' => $val !== '' && !is_numeric($val),
             'site_name' => $val === '',
             'brand_accent' => $val !== '' && !preg_match('/^#[0-9a-fA-F]{6}$/', $val),
+            'ym_id' => $val !== '' && !preg_match('/^\d{4,12}$/', $val),
+            'cookie_ttl_months' => !ctype_digit($val) || (int) $val < 1 || (int) $val > 24,
+            'cookie_policy_url', 'privacy_policy_url' => $val !== '' && Security::safeUrl($val) === '',
             'weather_days' => !ctype_digit($val) || (int) $val < 1 || (int) $val > 14,
             'yandex_verification', 'google_verification', 'bing_verification', 'indexnow_key' => $val !== '' && !preg_match('/^[A-Za-z0-9_\-]{4,64}$/', $val),
             'home_news_count', 'news_per_page' => !ctype_digit($val) || (int) $val < 1 || (int) $val > 200,

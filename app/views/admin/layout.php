@@ -15,12 +15,12 @@ $menu = [
     ['Контент', [
         ['', 'Обзор', 'grid', null], ['news', 'Новости', 'file', $cnt['rev'] ?: null], ['events', 'Афиша', 'calendar', null], ['pages', 'Страницы', 'folder', null], ['sections', 'Страницы разделов', 'file', null],
         ['categories', 'Рубрики', 'list', null], ['tags', 'Теги', 'tag', null], ['media', 'Медиа', 'image', null]]],
-    ['Сайт', [['menu', 'Меню сайта', 'menu', null], ['blocks', 'Блоки на сайте', 'grid', null], ['links', 'Ссылки и сервисы', 'link', null]]],
+    ['Сайт', [['menu', 'Меню сайта', 'menu', null], ['blocks', 'Блоки на сайте', 'grid', null], ['links', 'Ссылки и сервисы', 'link', null], ['cookies', 'Cookie и согласия', 'shield', null]]],
     ['SEO', [['seo', 'SEO-центр', 'activity', null], ['seo/redirects', 'Редиректы', 'arrow-right', null], ['seo/404', 'Ошибки 404', 'alert', null]]],
     ['Система', [['settings', 'Настройки', 'sliders', null], ['users', 'Пользователи', 'users', null], ['audit', 'Журнал действий', 'clock', null], ['system', 'Система и бэкапы', 'shield', null]]],
 ];
 $perm = ['settings' => 'settings', 'users' => 'users', 'audit' => 'audit', 'system' => 'system', 'seo' => 'seo', 'seo/redirects' => 'seo', 'seo/404' => 'seo',
-    'menu' => 'settings', 'blocks' => 'settings', 'links' => 'content', 'categories' => 'content', 'tags' => 'content', 'pages' => 'content', 'events' => 'content'];
+    'menu' => 'settings', 'blocks' => 'settings', 'cookies' => 'settings', 'links' => 'content', 'categories' => 'content', 'tags' => 'content', 'pages' => 'content', 'events' => 'content'];
 ?><!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive">
 <title><?= e($title) ?> — админ-панель</title><?= \App\Support\Brand::headLinks() ?>

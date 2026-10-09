@@ -43,7 +43,13 @@ final class Security
                 . "form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'";
         } else {
             header('X-Frame-Options: SAMEORIGIN');
-            $csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; "
+            // Яндекс Метрика добавляется в политику только когда счётчик настроен и баннер включён; запросы к ней идут лишь после согласия читателя
+            $x = ['script' => '', 'img' => '', 'connect' => ''];
+            try {
+                $x = \App\Support\Consent::csp();
+            } catch (\Throwable) {
+            }
+            $csp = "default-src 'self'; script-src 'self'{$x['script']}; style-src 'self'; img-src 'self' data:{$x['img']}; font-src 'self'; connect-src 'self'{$x['connect']}; "
                 . "media-src 'self' {$radio}; frame-src 'none'; form-action 'self'; frame-ancestors 'self'; base-uri 'self'; object-src 'none'";
         }
         if (Request::isHttps()) {

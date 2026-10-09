@@ -30,6 +30,7 @@ final class Routes
         $r->get('/og/news/{id}.jpg', [F\ServiceController::class, 'og']);
         $r->get('/api/weather', [F\ServiceController::class, 'weather']);
         $r->get('/brand.css', [F\ServiceController::class, 'brandCss']);
+        $r->post('/api/consent', [F\ServiceController::class, 'consent']);
         // SEO-файлы (если статической копии нет — отдаём динамически)
         $r->get('/{file:[A-Za-z0-9_.\-]+\.(?:xml|txt|webmanifest)}', [F\ServiceController::class, 'seoFile']);
         $r->get('/.well-known/security.txt', [F\ServiceController::class, 'securityTxt']);
@@ -93,6 +94,9 @@ final class Routes
         $r->post($p . '/seo/404/{id}/{action:ignore|delete|redirect}', [A\SeoController::class, 'notFoundAct']);
 
         $r->any($p . '/settings', [A\SettingsController::class, 'index']);
+        $r->get($p . '/cookies', [A\CookiesController::class, 'index']);
+        $r->get($p . '/cookies/export', [A\CookiesController::class, 'export']);
+        $r->post($p . '/cookies/reset', [A\CookiesController::class, 'reset']);
         $r->get($p . '/users', [A\UsersController::class, 'index']);
         $r->any($p . '/users/new', [A\UsersController::class, 'edit']);
         $r->any($p . '/users/{id}', [A\UsersController::class, 'edit']);

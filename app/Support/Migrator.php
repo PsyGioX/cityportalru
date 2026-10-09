@@ -18,7 +18,7 @@ use App\Core\Settings;
  */
 final class Migrator
 {
-    public const VERSION = 4;
+    public const VERSION = 5;
 
     public const MENU_DDL = "CREATE TABLE IF NOT EXISTS `menu_items` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -126,6 +126,12 @@ NOWDOC;
                     DB::exec('INSERT IGNORE INTO section_pages (sys_key, body, updated_at) VALUES (?, ?, NOW())', [$key, $key === 'kino' ? self::KINO_BODY : '']);
                 }
             }
+            // v5: cookie-баннер и журнал согласий (по умолчанию выключены), черновики политик
+            DB::pdo()->exec(Consent::CONSENTS_DDL);
+            foreach (['cookie_banner' => '0', 'cookie_ttl_months' => '12', 'cookie_policy_url' => '/cookie-policy', 'privacy_policy_url' => '/privacy', 'consent_version' => '1'] as $k => $v) {
+                DB::exec('INSERT IGNORE INTO settings (k, v) VALUES (?, ?)', [$k, $v]);
+            }
+            BasePages::install(false, ['cookie-policy', 'privacy']);
             DB::exec("INSERT IGNORE INTO settings (k, v) VALUES ('footer_note', 'Независимое издание: без рекламы, без cookie, без сбора данных о читателях.')");
             Settings::set('schema_ver', (string) self::VERSION);
             Settings::touch();
